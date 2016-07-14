@@ -1,0 +1,16 @@
+services:
+    app_formation.abstract_manager:
+        abstract:  true
+        class: App\FormationBundle\Service\AbstractGenericManager
+        calls:
+           - [setTokenStorage, ['@security.token_storage']]
+
+    app_formation.media_manager:
+        class: App\FormationBundle\Service\MediaManager
+        parent: app_formation.abstract_manager
+        arguments: ["@app_formation.media_repository"]
+
+    app_formation.vote_manager:
+        class: App\FormationBundle\Service\VoteManager
+        parent: app_formation.abstract_manager
+        arguments: ["@app_formation.vote_repository"]
