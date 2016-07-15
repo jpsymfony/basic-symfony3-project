@@ -3,7 +3,7 @@
 namespace App\FormationBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Media
@@ -26,6 +26,8 @@ class Media
      * @var string
      *
      * @ORM\Column(name="url", type="string", length=255)
+     * @Assert\NotBlank()
+     * @Assert\Url()
      */
     private $url;
 
@@ -33,6 +35,7 @@ class Media
      * @var string
      *
      * @ORM\Column(name="title", type="string", length=255)
+     * @Assert\NotBlank()
      */
     private $title;
 
@@ -53,15 +56,6 @@ class Media
      * )
      */
     private $votes;
-
-    /**
-     * Constructor
-     */
-    public function __construct()
-    {
-        $this->votes = new \Doctrine\Common\Collections\ArrayCollection();
-    }
-
 
     /**
      * Get id
@@ -144,14 +138,12 @@ class Media
     {
         return $this->average;
     }
-
     /**
-     * Average score formatted for display
-     * @return string
+     * Constructor
      */
-    public function getDisplayedAverage()
+    public function __construct()
     {
-        return (null === $this->average) ? '-' : sprintf('%.lf', $this->average);
+        $this->votes = new \Doctrine\Common\Collections\ArrayCollection();
     }
 
     /**
@@ -168,6 +160,19 @@ class Media
         $this->getNewAverageAfterVote();
 
         return $this;
+    }
+
+    public function getNewAverageAfterVote()
+    {
+        if (0 < $count = count($this->votes)) {
+            $total = 0;
+
+            foreach ($this->votes as $vote) {
+                $total += $vote->getScore();
+            }
+
+            $this->average = $total / $count;
+        }
     }
 
     /**
@@ -190,22 +195,13 @@ class Media
         return $this->votes;
     }
 
-    public function getNbVotes()
+    /**
+     * Average score formatted for display
+     * @return string
+     */
+    public function getDisplayedAverage()
     {
-        return count($this->votes);
-    }
-
-    public function getNewAverageAfterVote()
-    {
-        if (0 < $count = $this->getNbVotes()) {
-            $total = 0;
-
-            foreach ($this->votes as $vote) {
-                $total += $vote->getScore();
-            }
-
-            $this->average = $total / $this->getNbVotes();
-        }
+        return (null === $this->average) ? '-' : sprintf('%.1f', $this->average);
     }
 
     public function hasUserAlreadyVoted(User $user)

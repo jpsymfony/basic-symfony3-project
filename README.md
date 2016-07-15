@@ -1,5 +1,4 @@
-basic-symfony3-project
-==========================
+formation-symfony3-niveau1
+================================
 
-A Symfony project created on June 28, 2016, 11:31 pm.
-# basic-symfony3-project
+A Symfony project created on July 30, 2016, 8:11 pm.

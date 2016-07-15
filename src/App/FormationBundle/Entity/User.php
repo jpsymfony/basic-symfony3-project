@@ -3,16 +3,20 @@
 namespace App\FormationBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Security\Core\Encoder\PasswordEncoderInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
-use FOS\UserBundle\Model\User as FOSUser;
 
 /**
  * User
  *
  * @ORM\Table(name="user")
  * @ORM\Entity(repositoryClass="App\FormationBundle\Repository\UserRepository")
+ * @UniqueEntity(fields="username", message="That username is taken!")
+ * @UniqueEntity(fields="email", message="That email is taken!")
  */
-class User extends FOSUser
+class User implements UserInterface
 {
     /**
      * @var int
@@ -21,47 +25,54 @@ class User extends FOSUser
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      */
-    protected $id;
-
-//    /**
-//     * @var string
-//     *
-//     * @ORM\Column(name="username", type="string", length=255)
-//     * @Assert\NotBlank()
-//     * @Assert\Length(min="8")
-//     */
-//    private $username;
-//
-//    /**
-//     * @var string
-//     *
-//     * @ORM\Column(name="email", type="string", length=255, unique=true)
-//     * @Assert\NotBlank()
-//     * @Assert\Email()
-//     */
-//    private $email;
-//
-//    /**
-//     * @var string
-//     *
-//     * @ORM\Column(name="password", type="string", length=255)
-//     *  @Assert\NotBlank()
-//     *  @Assert\Length(min="8")
-//     */
-//    private $password;
+    private $id;
 
     /**
-     * persist => when the user form is submitted, the votes are persisted
-     * orphanRemoval=true => when a user is deleted, associated votes are removed from database
-     * @ORM\OneToMany(targetEntity="App\FormationBundle\Entity\Vote", mappedBy="user", cascade={"persist"}, orphanRemoval=true)
+     * @var string
+     *
+     * @ORM\Column(name="username", type="string", length=255, unique=true)
+     * @Assert\NotBlank()
+     * @Assert\Length(min="8")
      */
-    private $votes;
+    private $username;
 
-    public function __construct()
-    {
-        parent::__construct();
-        $this->votes = new \Doctrine\Common\Collections\ArrayCollection();
-    }
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="email", type="string", length=255, unique=true)
+     * @Assert\NotBlank()
+     * @Assert\Email()
+     */
+    private $email;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="password", type="string", length=255)
+     * @Assert\NotBlank()
+     * @Assert\Length(min="8")
+     */
+    private $password;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $salt;
+
+    /**
+     * @Assert\NotBlank
+     * @Assert\Regex(
+     *      pattern="/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.*\s).*$/",
+     *      message="Use 1 upper case letter, 1 lower case letter, and 1 number"
+     * )
+     */
+    private $plainPassword;
+
+    /**
+     * @ORM\Column(type="json_array")
+     */
+    private $roles = array();
+
 
     /**
      * Get id
@@ -73,110 +84,127 @@ class User extends FOSUser
         return $this->id;
     }
 
-//    /**
-//     * Set username
-//     *
-//     * @param string $username
-//     *
-//     * @return User
-//     */
-//    public function setUsername($username)
-//    {
-//        $this->username = $username;
-//
-//        return $this;
-//    }
-//
-//    /**
-//     * Get username
-//     *
-//     * @return string
-//     */
-//    public function getUsername()
-//    {
-//        return $this->username;
-//    }
-//
-//    /**
-//     * Set email
-//     *
-//     * @param string $email
-//     *
-//     * @return User
-//     */
-//    public function setEmail($email)
-//    {
-//        $this->email = $email;
-//
-//        return $this;
-//    }
-//
-//    /**
-//     * Get email
-//     *
-//     * @return string
-//     */
-//    public function getEmail()
-//    {
-//        return $this->email;
-//    }
-//
-//    /**
-//     * Set password
-//     *
-//     * @param string $password
-//     *
-//     * @return User
-//     */
-//    public function setPassword($password)
-//    {
-//        $this->password = $password;
-//
-//        return $this;
-//    }
-//
-//    /**
-//     * Get password
-//     *
-//     * @return string
-//     */
-//    public function getPassword()
-//    {
-//        return $this->password;
-//    }
-
-
     /**
-     * Add vote
+     * Set username
      *
-     * @param \App\FormationBundle\Entity\User $vote
+     * @param string $username
      *
      * @return User
      */
-    public function addVote(\App\FormationBundle\Entity\User $vote)
+    public function setUsername($username)
     {
-        $this->votes[] = $vote;
+        $this->username = $username;
 
         return $this;
     }
 
     /**
-     * Remove vote
+     * Get username
      *
-     * @param \App\FormationBundle\Entity\User $vote
+     * @return string
      */
-    public function removeVote(\App\FormationBundle\Entity\User $vote)
+    public function getUsername()
     {
-        $this->votes->removeElement($vote);
+        return $this->username;
     }
 
     /**
-     * Get votes
+     * Set email
      *
-     * @return \Doctrine\Common\Collections\Collection
+     * @param string $email
+     *
+     * @return User
      */
-    public function getVotes()
+    public function setEmail($email)
     {
-        return $this->votes;
+        $this->email = $email;
+
+        return $this;
+    }
+
+    /**
+     * Get email
+     *
+     * @return string
+     */
+    public function getEmail()
+    {
+        return $this->email;
+    }
+
+    /**
+     * Set password
+     *
+     * @param string $password
+     *
+     * @return User
+     */
+    public function setPassword($password)
+    {
+        $this->password = $password;
+
+        return $this;
+    }
+
+    /**
+     * Get password
+     *
+     * @return string
+     */
+    public function getPassword()
+    {
+        return $this->password;
+    }
+
+    public function getPlainPassword()
+    {
+        return $this->plainPassword;
+    }
+
+    public function setPlainPassword($plainPassword)
+    {
+        $this->plainPassword = $plainPassword;
+
+        return $this;
+    }
+
+    /**
+     * @param PasswordEncoderInterface $encoder
+     */
+    public function encodePassword(PasswordEncoderInterface $encoder)
+    {
+        if ($this->plainPassword) {
+            $this->salt = sha1(uniqid(mt_rand()));
+            $this->password = $encoder->encodePassword(
+                $this->plainPassword, $this->salt
+            );
+
+            $this->eraseCredentials();
+        }
+    }
+
+    public function getRoles()
+    {
+        $roles = $this->roles;
+        $roles[] = 'ROLE_USER';
+
+        return array_unique($roles);
+    }
+
+    /**
+     * Returns the salt that was originally used to encode the password.
+     *
+     * This can return null if the password was not encoded using a salt.
+     *
+     * @return string|null The salt
+     */
+    public function getSalt()
+    {
+        return $this->salt;
+    }
+
+    public function eraseCredentials()
+    {
+        $this->setPlainPassword(null);
     }
 }

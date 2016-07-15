@@ -6,12 +6,12 @@ use Doctrine\Common\DataFixtures\AbstractFixture;
 use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use App\FormationBundle\Entity\User;
-
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class LoadUserData extends AbstractFixture implements OrderedFixtureInterface, ContainerAwareInterface
 {
+    /** @var ContainerInterface */
     private $container;
 
     public function setContainer(ContainerInterface $container = null)
@@ -21,7 +21,7 @@ class LoadUserData extends AbstractFixture implements OrderedFixtureInterface, C
 
     public function load(ObjectManager $manager)
     {
-        $userManager = $this->container->get('fos_user.user_manager');
+        $factory = $this->container->get('security.encoder_factory');
 
         $userDatas = [
             'user1' => [
@@ -42,9 +42,9 @@ class LoadUserData extends AbstractFixture implements OrderedFixtureInterface, C
             $user = new User();
             $user->setUsername($userName);
             $user->setEmail($userData['email']);
-            $user->setEnabled(true);
             $user->setPlainPassword($userData['password']);
-            $userManager->updatePassword($user);
+            $encoder = $factory->getEncoder($user);
+            $user->encodePassword($encoder);
             $manager->persist($user);
             $this->addReference(sprintf('user-%s', $userName), $user);
         }

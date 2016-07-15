@@ -8,9 +8,9 @@
         <img src="{{ media.url }}"/><br/>
         <b>Score:</b> {{ media.displayedAverage }}/10 <i>({{ media.votes | length }} votes)</i>
     </p>
-    <hr/>
-    <p>
-        {% if is_granted('ROLE_USER') %}
+    {% if is_granted('ROLE_USER') %}
+        <hr/>
+        <p>
             {% if not media.hasUserAlreadyVoted(app.user) %}
                 <b>Top ou Flop? Votez!</b>
                 <form action="{{ path('vote_media', {'id': media.id}) }}" method="POST" class="form-horizontal">
@@ -21,6 +21,6 @@
             {% endif %}
         {% else %}
             <div class="alert alert-block">Vous devez être connecté pour voter.</div>
-        {% endif %}
-    </p>
+        </p>
+    {% endif %}
 {% endblock %}

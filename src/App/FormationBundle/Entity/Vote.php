@@ -16,11 +16,6 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 class Vote
 {
-    public function __construct()
-    {
-        $this->date = new \DateTime('now');
-    }
-
     /**
      * @var int
      *
@@ -31,7 +26,7 @@ class Vote
     private $id;
 
     /**
-     * @var integer
+     * @var int
      *
      * @ORM\Column(name="score", type="integer")
      * @Assert\NotBlank()
@@ -51,8 +46,7 @@ class Vote
      * @var User $user
      *
      * @ORM\ManyToOne(
-     *     targetEntity="App\FormationBundle\Entity\User",
-     *     inversedBy="votes")
+     *     targetEntity="App\FormationBundle\Entity\User")
      *
      * @ORM\JoinColumn(
      *     name="user_id",
@@ -75,6 +69,10 @@ class Vote
      */
     private $media;
 
+    public function __construct()
+    {
+        $this->date = new \DateTime('now');
+    }
 
     /**
      * Get id

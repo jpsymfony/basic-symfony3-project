@@ -1,22 +1,23 @@
 {% extends "::base.html.twig" %}
 
 {% block header %}
-    <h1>Bonjour {{ name }}, bienvenue à cette formation!</h1>
+    <h1>Bonjour {{ name }}, {{ parent() | lower | raw }} </h1>
 {% endblock %}
 
 {% block content %}
-        <ul>
-            {% for index, day in days %}
-                <li>{{ index }} : {{ day }}</li>
-            {% endfor %}
-        </ul>
+    <h2>Accueil</h2>
+    <ul>
+        {% for index, day in days %}
+            <li>{{ index }} : {{ day }}</li>
+        {% endfor %}
+    </ul>
 
-        <p>
-            {{ html }}
-        </p>
-        <p>
-            {{ html | replace({"n'est pas" : "est"}) | raw }}
-        </p>
+    <p>
+        {{ html }}
+    </p>
+    <p>
+        {{ html | replace({"n'est pas" : "est"}) | raw }}
+    </p>
 {% endblock %}
 
 {% block footer %}
